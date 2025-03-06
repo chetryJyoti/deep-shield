@@ -1,50 +1,38 @@
-# Welcome to your Expo app 👋
+# Deep Shield
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+**Unlock your true potential by blocking all the distracting apps on your phone.**
 
-## Get started
+<!-- ![Deep Shield App](https://via.placeholder.com/600x300) -->
 
-1. Install dependencies
+## Features
 
-   ```bash
-   npm install
-   ```
+- **⏰ Time-Based Blocking**: Schedule blocks for specific days and times
+- **📱 App Selection**: Choose which apps to block during focus sessions
+- **🔄 Flexible Conditions**: Combine time, location, and activity-based triggers
+- **📊 Focus Analytics**: Track your focus time and improvements
 
-2. Start the app
+## Pricing
 
-   ```bash
-    npx expo start
-   ```
+Deep Shield is **completely FREE** to download and use with core features!
 
-In the output, you'll find options to open the app in a
+You only pay if you:
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- Want to uninstall the app
+- Need to increase app blocking limits
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Getting Started
 
-## Get a fresh project
+1. Clone this repository
+2. Install dependencies with `npm install`
+3. Run the project with `npx expo start`
 
-When you're ready, run:
+## Current Implementation
 
-```bash
-npm run reset-project
-```
+- Time condition screen with day selection
+- Time range picker
+- Settings for recurring schedules
+- Data management structure
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+_Take back control of your digital life_
