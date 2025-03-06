@@ -1,12 +1,12 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
-import { Platform } from 'react-native';
+import { Tabs } from "expo-router";
+import React from "react";
+import { Platform, View } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 
-import { HapticTab } from '@/components/HapticTab';
-import { IconSymbol } from '@/components/ui/IconSymbol';
-import TabBarBackground from '@/components/ui/TabBarBackground';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { HapticTab } from "@/components/HapticTab";
+import { Colors } from "@/constants/Colors";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import { ChartBar, Shield, User, Zap } from "lucide-react-native";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -14,30 +14,54 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
         headerShown: false,
         tabBarButton: HapticTab,
-        tabBarBackground: TabBarBackground,
-        tabBarStyle: Platform.select({
-          ios: {
-            // Use a transparent background on iOS to show the blur effect
-            position: 'absolute',
-          },
-          default: {},
-        }),
-      }}>
+        tabBarStyle: {
+          position: "absolute",
+          backgroundColor: "transparent",
+          elevation: 0, // Remove shadow on Android
+          borderTopWidth: 0, // Remove top border
+        },
+        tabBarBackground: () => (
+          <LinearGradient colors={["#e0ebff", "#f5f7ff"]} style={{ flex: 1 }} />
+        ),
+      }}
+    >
       <Tabs.Screen
-        name="index"
+        name="(home)"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: "Blocking",
+          tabBarIcon: ({ color, focused }) => (
+            <Shield color={color} fill={focused ? color : "none"} />
+          ),
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="strictmode"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          title: "Strict Mode",
+          tabBarIcon: ({ color, focused }) => (
+            <Zap color={color} fill={focused ? color : "none"} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="insights"
+        options={{
+          title: "Insights",
+          tabBarIcon: ({ color, focused }) => (
+            <ChartBar color={color} fill={focused ? color : "none"} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "Profile",
+          tabBarIcon: ({ color, focused }) => (
+            <User color={color} fill={focused ? color : "none"} />
+          ),
         }}
       />
     </Tabs>
