@@ -7,11 +7,10 @@ import {
   Switch,
   SafeAreaView,
   StatusBar,
-  Modal,
-  ScrollView,
 } from "react-native";
 import { router } from "expo-router";
 import { ChevronLeft, Clock, Gem, Plus } from "lucide-react-native";
+import TimePickerModal from "@/components/TimeSlider";
 
 const TimeCondition = () => {
   // Get current day (0 = Sunday, 1 = Monday, etc.)
@@ -34,7 +33,7 @@ const TimeCondition = () => {
   const [allDayLong, setAllDayLong] = useState(false);
   const [startTime, setStartTime] = useState("8:00 AM");
   const [endTime, setEndTime] = useState("2:00 AM");
-  const [showTimeModal, setShowTimeModal] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
   const [currentTimeEditing, setCurrentTimeEditing] = useState("start"); // 'start' or 'end'
 
   const days = [
@@ -45,33 +44,6 @@ const TimeCondition = () => {
     { label: "T", value: "T" }, // Thursday
     { label: "F", value: "F" }, // Friday
     { label: "S", value: "S2" }, // Saturday
-  ];
-
-  const timeOptions = [
-    "12:00 AM",
-    "1:00 AM",
-    "2:00 AM",
-    "3:00 AM",
-    "4:00 AM",
-    "5:00 AM",
-    "6:00 AM",
-    "7:00 AM",
-    "8:00 AM",
-    "9:00 AM",
-    "10:00 AM",
-    "11:00 AM",
-    "12:00 PM",
-    "1:00 PM",
-    "2:00 PM",
-    "3:00 PM",
-    "4:00 PM",
-    "5:00 PM",
-    "6:00 PM",
-    "7:00 PM",
-    "8:00 PM",
-    "9:00 PM",
-    "10:00 PM",
-    "11:00 PM",
   ];
 
   const handleDaySelect = (dayValue: string) => {
@@ -96,18 +68,41 @@ const TimeCondition = () => {
     console.log("Condition Data:", conditionData);
   };
 
-  const openTimeModal = (type: "start" | "end") => {
+  const openTimePicker = (type: "start" | "end") => {
     setCurrentTimeEditing(type);
-    setShowTimeModal(true);
+    setShowTimePicker(true);
   };
 
-  const handleSelectTime = (time: string) => {
+  const handleTimeSelected = (time: string) => {
     if (currentTimeEditing === "start") {
       setStartTime(time);
     } else {
       setEndTime(time);
     }
-    setShowTimeModal(false);
+    setShowTimePicker(false);
+  };
+
+  // Parse time string like "8:00 AM" to get hour, minute and period
+  interface ParsedTime {
+    hour: number;
+    minute: number;
+    period: string;
+  }
+
+  const parseTimeString = (timeString: string): ParsedTime => {
+    const [time, period] = timeString.split(" ");
+    const [hour, minute] = time.split(":");
+    return {
+      hour: parseInt(hour),
+      minute: parseInt(minute),
+      period,
+    };
+  };
+
+  // Get initial time values for the time picker
+  const getInitialTimeValues = () => {
+    const timeString = currentTimeEditing === "start" ? startTime : endTime;
+    return parseTimeString(timeString);
   };
 
   // Get the day name for the display
@@ -213,14 +208,14 @@ const TimeCondition = () => {
               <View style={styles.timePicker}>
                 <TouchableOpacity
                   style={styles.timeBox}
-                  onPress={() => openTimeModal("start")}
+                  onPress={() => openTimePicker("start")}
                 >
                   <Text style={styles.timeText}>{startTime}</Text>
                 </TouchableOpacity>
                 <Text style={styles.timeSeperator}>—</Text>
                 <TouchableOpacity
                   style={styles.timeBox}
-                  onPress={() => openTimeModal("end")}
+                  onPress={() => openTimePicker("end")}
                 >
                   <Text style={styles.timeText}>{endTime}</Text>
                 </TouchableOpacity>
@@ -236,42 +231,19 @@ const TimeCondition = () => {
         <Text style={styles.addButtonText}>Add</Text>
       </TouchableOpacity>
 
-      {/* Time Selection Modal */}
-      <Modal visible={showTimeModal} animationType="slide" transparent={true}>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
-                Select {currentTimeEditing === "start" ? "Start" : "End"} Time
-              </Text>
-              <TouchableOpacity onPress={() => setShowTimeModal(false)}>
-                <Text style={styles.modalCloseButton}>Cancel</Text>
-              </TouchableOpacity>
-            </View>
-            <ScrollView style={styles.timeListContainer}>
-              {timeOptions.map((time) => (
-                <TouchableOpacity
-                  key={time}
-                  style={styles.timeOption}
-                  onPress={() => handleSelectTime(time)}
-                >
-                  <Text
-                    style={[
-                      styles.timeOptionText,
-                      (currentTimeEditing === "start" && time === startTime) ||
-                      (currentTimeEditing === "end" && time === endTime)
-                        ? styles.selectedTimeText
-                        : null,
-                    ]}
-                  >
-                    {time}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
+      {/* Time Picker Modal */}
+      {showTimePicker && (
+        <TimePickerModal
+          visible={showTimePicker}
+          onClose={() => setShowTimePicker(false)}
+          onTimeSelected={handleTimeSelected}
+          initialHour={getInitialTimeValues().hour}
+          initialMinute={getInitialTimeValues().minute}
+          title={`Select ${
+            currentTimeEditing === "start" ? "Start" : "End"
+          } Time`}
+        />
+      )}
     </SafeAreaView>
   );
 };
