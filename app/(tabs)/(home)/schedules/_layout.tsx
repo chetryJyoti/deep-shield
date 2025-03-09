@@ -4,7 +4,7 @@ import { router, Stack } from "expo-router";
 import { X } from "lucide-react-native";
 import { Platform, Text, TouchableOpacity } from "react-native";
 
-export default function Homelayout() {
+export default function ScheduleLayout() {
   return (
     <Stack>
       <Stack.Screen
@@ -15,7 +15,7 @@ export default function Homelayout() {
         }}
       />
       <Stack.Screen
-        name="time"
+        name="time-based"
         options={{
           headerShown: false,
           presentation: Platform.OS === "ios" ? "modal" : undefined,
@@ -29,7 +29,21 @@ export default function Homelayout() {
         }}
       />
       <Stack.Screen
-        name="location"
+        name="location-based"
+        options={{
+          headerShown: false,
+          presentation: Platform.OS === "ios" ? "modal" : undefined,
+        }}
+      />
+      <Stack.Screen
+        name="installed-apps"
+        options={{
+          headerShown: false,
+          presentation: Platform.OS === "ios" ? "modal" : undefined,
+        }}
+      />
+      <Stack.Screen
+        name="create-schedule"
         options={{
           headerShown: false,
           presentation: Platform.OS === "ios" ? "modal" : undefined,

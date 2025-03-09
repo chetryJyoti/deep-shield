@@ -9,8 +9,9 @@ import {
   StatusBar,
 } from "react-native";
 import { router } from "expo-router";
-import { ChevronLeft, Clock, Gem, Plus } from "lucide-react-native";
+import { ChevronLeft, Clock, Plus } from "lucide-react-native";
 import TimePickerModal from "@/components/TimeSlider";
+import { Colors } from "@/constants/Colors";
 
 const TimeCondition = () => {
   // Get current day (0 = Sunday, 1 = Monday, etc.)
@@ -29,11 +30,15 @@ const TimeCondition = () => {
     return dayMap[dayIndex];
   };
 
-  const [selectedDay, setSelectedDay] = useState(getCurrentDayIndex());
+  const [selectedDays, setSelectedDays] = useState([getCurrentDayIndex()]);
   const [allDayLong, setAllDayLong] = useState(false);
-  const [startTime, setStartTime] = useState("8:00 AM");
-  const [endTime, setEndTime] = useState("2:00 AM");
   const [showTimePicker, setShowTimePicker] = useState(false);
+
+  // Replace the single time state with an array of time slots
+  const [timeSlots, setTimeSlots] = useState([
+    { id: 1, startTime: "8:00 AM", endTime: "2:00 PM" },
+  ]);
+  const [currentEditingSlot, setCurrentEditingSlot] = useState(null);
   const [currentTimeEditing, setCurrentTimeEditing] = useState("start"); // 'start' or 'end'
 
   const days = [
@@ -47,7 +52,15 @@ const TimeCondition = () => {
   ];
 
   const handleDaySelect = (dayValue: string) => {
-    setSelectedDay(dayValue);
+    if (selectedDays.includes(dayValue)) {
+      if (selectedDays.length > 1) {
+        // if day is already selected, remove it (unless it's the only selected day)
+        setSelectedDays(selectedDays.filter((day) => day !== dayValue));
+      }
+    } else {
+      // if day is not slected, add it
+      setSelectedDays([...selectedDays, dayValue]);
+    }
   };
 
   const handleBack = () => {
@@ -55,31 +68,56 @@ const TimeCondition = () => {
   };
 
   const handleContinue = () => {
-    // Save all information and log to console
     const conditionData = {
-      day: selectedDay,
-      dayLabel: days.find((d) => d.value === selectedDay)?.label,
+      day: selectedDays,
+      dayLabel: selectedDays.map(
+        (day) => days.find((d) => d.value === day)?.label
+      ),
       allDayLong,
-      startTime: allDayLong ? null : startTime,
-      endTime: allDayLong ? null : endTime,
+      timeSlots: allDayLong ? [] : timeSlots,
       timestamp: new Date().toISOString(),
     };
 
     console.log("Condition Data:", conditionData);
+
+    router.push({
+      pathname: "/(tabs)/(home)/schedules/installed-apps",
+      params: conditionData,
+    });
   };
 
-  const openTimePicker = (type: "start" | "end") => {
+  const openTimePicker = (slotId, type) => {
+    setCurrentEditingSlot(slotId);
     setCurrentTimeEditing(type);
     setShowTimePicker(true);
   };
 
-  const handleTimeSelected = (time: string) => {
-    if (currentTimeEditing === "start") {
-      setStartTime(time);
-    } else {
-      setEndTime(time);
-    }
+  const handleTimeSelected = (time) => {
+    setTimeSlots(
+      timeSlots.map((slot) => {
+        if (slot.id === currentEditingSlot) {
+          return {
+            ...slot,
+            [currentTimeEditing + "Time"]: time,
+          };
+        }
+        return slot;
+      })
+    );
     setShowTimePicker(false);
+  };
+
+  const addTimeSlot = () => {
+    const newId =
+      timeSlots.length > 0 ? Math.max(...timeSlots.map((s) => s.id)) + 1 : 1;
+    setTimeSlots([
+      ...timeSlots,
+      { id: newId, startTime: "8:00 AM", endTime: "2:00 PM" },
+    ]);
+  };
+
+  const removeTimeSlot = (id) => {
+    setTimeSlots(timeSlots.filter((slot) => slot.id !== id));
   };
 
   // Parse time string like "8:00 AM" to get hour, minute and period
@@ -101,13 +139,17 @@ const TimeCondition = () => {
 
   // Get initial time values for the time picker
   const getInitialTimeValues = () => {
-    const timeString = currentTimeEditing === "start" ? startTime : endTime;
+    const slot = timeSlots.find((s) => s.id === currentEditingSlot);
+    if (!slot) return { hour: 8, minute: 0, period: "AM" };
+
+    const timeString =
+      currentTimeEditing === "start" ? slot.startTime : slot.endTime;
     return parseTimeString(timeString);
   };
 
   // Get the day name for the display
   const getDayName = () => {
-    const dayMap: { [key in typeof selectedDay]: string } = {
+    const dayMap = {
       S1: "Sunday",
       M: "Monday",
       T1: "Tuesday",
@@ -116,7 +158,13 @@ const TimeCondition = () => {
       F: "Friday",
       S2: "Saturday",
     };
-    return `Every ${dayMap[selectedDay]}`;
+    if (selectedDays.length == 1) {
+      return `Every ${dayMap[selectedDays[0]]}`;
+    } else if (selectedDays.length == 7) {
+      return "Every day";
+    } else {
+      return "Selected days";
+    }
   };
 
   return (
@@ -151,14 +199,15 @@ const TimeCondition = () => {
                 key={day.value}
                 style={[
                   styles.dayButton,
-                  selectedDay === day.value && styles.selectedDayButton,
+                  selectedDays.includes(day.value) && styles.selectedDayButton,
                 ]}
                 onPress={() => handleDaySelect(day.value)}
               >
                 <Text
                   style={[
                     styles.dayButtonText,
-                    selectedDay === day.value && styles.selectedDayButtonText,
+                    selectedDays.includes(day.value) &&
+                      styles.selectedDayButtonText,
                   ]}
                 >
                   {day.label}
@@ -166,14 +215,6 @@ const TimeCondition = () => {
               </TouchableOpacity>
             ))}
           </View>
-
-          <TouchableOpacity style={styles.premiumButton}>
-            <Text style={styles.premiumButtonText}>Multiple days</Text>
-            <View style={styles.premiumIcon}>
-              <Gem size={18} color="#FF9500" />
-              <Text style={styles.premiumText}>Premium</Text>
-            </View>
-          </TouchableOpacity>
         </View>
       </View>
 
@@ -192,7 +233,7 @@ const TimeCondition = () => {
             <Switch
               value={allDayLong}
               onValueChange={setAllDayLong}
-              trackColor={{ false: "#E5E5EA", true: "#E5E5EA" }}
+              trackColor={{ false: "#E5E5EA", true: Colors.light.primary }}
               thumbColor={allDayLong ? "#FFFFFF" : "#FFFFFF"}
               ios_backgroundColor="#E5E5EA"
             />
@@ -201,33 +242,45 @@ const TimeCondition = () => {
           <View style={styles.separator} />
 
           {!allDayLong && (
-            <View style={styles.timePickerContainer}>
-              <View style={styles.clockIconContainer}>
-                <Clock size={24} color="#000" />
-              </View>
-              <View style={styles.timePicker}>
-                <TouchableOpacity
-                  style={styles.timeBox}
-                  onPress={() => openTimePicker("start")}
-                >
-                  <Text style={styles.timeText}>{startTime}</Text>
-                </TouchableOpacity>
-                <Text style={styles.timeSeperator}>—</Text>
-                <TouchableOpacity
-                  style={styles.timeBox}
-                  onPress={() => openTimePicker("end")}
-                >
-                  <Text style={styles.timeText}>{endTime}</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
+            <>
+              {timeSlots.map((slot) => (
+                <View key={slot.id} style={styles.timePickerContainer}>
+                  <View style={styles.clockIconContainer}>
+                    <Clock size={24} color="#000" />
+                  </View>
+                  <View style={styles.timePicker}>
+                    <TouchableOpacity
+                      style={styles.timeBox}
+                      onPress={() => openTimePicker(slot.id, "start")}
+                    >
+                      <Text style={styles.timeText}>{slot.startTime}</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.timeSeperator}>—</Text>
+                    <TouchableOpacity
+                      style={styles.timeBox}
+                      onPress={() => openTimePicker(slot.id, "end")}
+                    >
+                      <Text style={styles.timeText}>{slot.endTime}</Text>
+                    </TouchableOpacity>
+                  </View>
+                  {timeSlots.length > 1 && (
+                    <TouchableOpacity
+                      style={styles.removeButton}
+                      onPress={() => removeTimeSlot(slot.id)}
+                    >
+                      <Text style={styles.removeButtonText}>-</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              ))}
+            </>
           )}
         </View>
       </View>
 
       {/* Add Button */}
-      <TouchableOpacity style={styles.addButton}>
-        <Plus size={20} color="#007AFF" />
+      <TouchableOpacity style={styles.addButton} onPress={addTimeSlot}>
+        <Plus size={20} color={Colors.light.primary} />
         <Text style={styles.addButtonText}>Add</Text>
       </TouchableOpacity>
 
@@ -315,7 +368,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   selectedDayButton: {
-    backgroundColor: "#007AFF",
+    backgroundColor: Colors.light.primary,
   },
   dayButtonText: {
     fontSize: 16,
@@ -323,35 +376,6 @@ const styles = StyleSheet.create({
   },
   selectedDayButtonText: {
     color: "white",
-  },
-  premiumButton: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#E5E5EA",
-    borderRadius: 20,
-    borderStyle: "dashed",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-  },
-  premiumButtonText: {
-    fontSize: 16,
-    fontWeight: "500",
-  },
-  premiumIcon: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  premiumIconText: {
-    fontSize: 16,
-    color: "#FF9500",
-    marginRight: 4,
-  },
-  premiumText: {
-    fontSize: 16,
-    color: "#FF9500",
   },
   timeContainer: {
     backgroundColor: "white",
@@ -380,6 +404,7 @@ const styles = StyleSheet.create({
   timePickerContainer: {
     flexDirection: "row",
     alignItems: "center",
+    marginBottom: 6,
   },
   clockIconContainer: {
     marginRight: 12,
@@ -397,7 +422,7 @@ const styles = StyleSheet.create({
   },
   timeText: {
     fontSize: 17,
-    color: "#007AFF",
+    color: Colors.light.primary,
   },
   timeSeperator: {
     marginHorizontal: 12,
@@ -417,7 +442,7 @@ const styles = StyleSheet.create({
   },
   addButtonText: {
     fontSize: 17,
-    color: "#007AFF",
+    color: Colors.light.primary,
     marginLeft: 8,
   },
   modalContainer: {
@@ -464,5 +489,19 @@ const styles = StyleSheet.create({
   selectedTimeText: {
     color: "#007AFF",
     fontWeight: "500",
+  },
+  removeButton: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: "#F2F2F7",
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: 8,
+  },
+  removeButtonText: {
+    fontSize: 20,
+    color: "#FF3B30",
+    fontWeight: "bold",
   },
 });

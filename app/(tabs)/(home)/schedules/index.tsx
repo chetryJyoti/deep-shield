@@ -16,7 +16,7 @@ const BlockingCondition = () => {
   };
 
   const navigateToTimeCondition = () => {
-    router.push("/(tabs)/(home)/schedules/time");
+    router.push("/(tabs)/(home)/schedules/time-based");
   };
 
   const navigateToUsageLimit = () => {
@@ -24,7 +24,7 @@ const BlockingCondition = () => {
   };
 
   const navigateToLocationCondition = () => {
-    router.push("/(tabs)/(home)/schedules/location");
+    router.push("/(tabs)/(home)/schedules/location-based");
   };
 
   return (
